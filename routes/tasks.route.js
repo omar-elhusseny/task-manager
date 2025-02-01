@@ -1,15 +1,10 @@
-const express = require("express");
-const router = express.Router();
-
-const { getAllTasks, createTask, getTask, deleteTask, editTask, editCategory } = require('../controllers/tasks.controller');
-const { isAuthenticated } = require("../middlewares/isAuth");
-
-// protect all task routes
-router.use(isAuthenticated);
+import { Router } from "express";
+const router = Router();
+import { getAllTasks, createTask, getTask, deleteTask, editTask } from '../controllers/tasks.controller.js';
 
 // /api/v1/tasks
 router.route('/').get(getAllTasks).post(createTask)
 // /api/v1/tasks/:id
 router.route('/:id').get(getTask).patch(editTask).delete(deleteTask)
 
-module.exports = router;
+export default router;

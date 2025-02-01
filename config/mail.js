@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-const transporter = nodemailer.createTransport({
+import { createTransport } from "nodemailer";
+const transporter = createTransport({
     service: 'gmail', // Or any other service like 'smtp.mailtrap.io' or 'SendGrid'
     auth: {
         user: process.env.USER_EMAIL,
@@ -24,4 +24,4 @@ const sendEmail = (email, emailSubject, message) => {
     });
 };
 
-module.exports = sendEmail;
+export default sendEmail;

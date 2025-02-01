@@ -1,12 +1,12 @@
-const asyncWrapper = require("../middlewares/asyncWrapper");
-const User = require("../models/user.model");
-const sendEmail = require("../config/mail");
-const AppError = require("../utils/appError");
+import asyncWrapper from "../middlewares/asyncWrapper.js";
+import User from "../models/user.model.js";
+import sendEmail from "../config/mail.js";
+import AppError from "../utils/appError.js";
+import crypto from "crypto";
+import bcrypt from "bcrypt";
 
-// Register a new user
-exports.register = asyncWrapper(async (req, res) => {
+export const register = asyncWrapper(async (req, res) => {
     const { name, email, password } = req.body;
-    if (!name || !email || !password) return res.status(400).send("All fields are required.");
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).send("User already exists.");
@@ -18,20 +18,14 @@ exports.register = asyncWrapper(async (req, res) => {
     res.status(201).send("User registered successfully.");
 });
 
-// Login a user
-exports.login = asyncWrapper(async (req, res) => {
+export const login = asyncWrapper(async (req, res, next) => {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).send("All fields are required.");
     const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) {
-        return res.status(400).send("Invalid email or password.");
-    }
     req.session.userId = user._id; // Set session
     res.status(200).send("Login successful.");
 });
 
-
-exports.forgetPassword = asyncWrapper(async (req, res, next) => {
+export const forgetPassword = asyncWrapper(async (req, res, next) => {
 
     const user = await User.findOne({ email: req.body.email });
     if (!user) return next(new AppError("No user with this email"));
@@ -53,7 +47,7 @@ exports.forgetPassword = asyncWrapper(async (req, res, next) => {
     return res.status(200).json({ message: 'Reset code sent to your email, Check it out.' });
 })
 
-exports.verifyResetCode = asyncWrapper(async (req, res, next) => {
+export const verifyResetCode = asyncWrapper(async (req, res, next) => {
     const { resetCode } = req.body;
 
     const hashedResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
@@ -69,7 +63,7 @@ exports.verifyResetCode = asyncWrapper(async (req, res, next) => {
     return res.status(200).json({ status: "user verified" });
 })
 
-exports.resetPassword = asyncWrapper(async (req, res, next) => {
+export const resetPassword = asyncWrapper(async (req, res, next) => {
     // 1) Get user based on email
     const user = await User.findOne({ email: req.body.email });
 

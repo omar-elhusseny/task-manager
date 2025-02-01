@@ -1,16 +1,25 @@
-require("dotenv").config()
+import dotenv from "dotenv"
 
 // Import dependencies
-const express = require("express");
-const path = require("path");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import session from "express-session";
+import Mongo from "connect-mongo";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 
 // Import local files 
-const connectDB = require("./config/database");
-const AppError = require("./utils/appError");
-const globalErrorHandler = require("./middlewares/errorHandling");
-const mainRoutes = require("./routes/index.route");
+import connectDB from "./config/database.js";
+import AppError from "./utils/appError.js";
+import globalErrorHandler from "./middlewares/errorHandling.js";
+import mainRoutes from "./routes/index.route.js";
+
+dotenv.config();
+
+// variables
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // initialize the application
 const app = express();
@@ -18,27 +27,41 @@ const app = express();
 // Connect to the database
 connectDB();
 
+const limiter = rateLimit({
+    windowMS: 15 * 60 * 1000,
+    max: 100,
+    skip: (req) => req.ip === '127.0.0.1' 
+})
+
+
 // Middlewares
+app.use(limiter)
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(require("cookie-parser")());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
+    store: Mongo.create({ mongoUrl: process.env.MONGO_URI }),
     cookie: {
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
         maxAge: 1000 * 60 * 60 * 24, // 1 day
     }
 }))
+
+if (process.env.NODE_ENV === "development") {
+    app.use(morgan("dev"));
+    console.log(`Mode: ${process.env.NODE_ENV}`);
+}
 
 // Routes
 mainRoutes(app);
 
 // Unrecognized route
-app.all("*", (req, res, next) => next(new AppError("Unrecognized url", 404)));
+app.all("*", (req, res, next) => next(new AppError(`Unrecognized URL: ${req.originalUrl}`, 404)));
 
 // Global error handling middleware
 app.use(globalErrorHandler);

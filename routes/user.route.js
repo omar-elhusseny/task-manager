@@ -1,6 +1,6 @@
-const express = require("express");
-const router = express.Router();
-const { logout, getProfile, updataUser, updatePassword } = require("../controllers/user.controller");
+import { Router } from "express";
+const router = Router();
+import { logout, getProfile, updataUser, updatePassword } from "../controllers/user.controller.js";
 
 // /api/v1/users
 router.route("/").get(getProfile).put(updataUser);
@@ -11,4 +11,4 @@ router.post("/logout", logout);
 // /api/v1/users/password
 router.put("/password", updatePassword);
 
-module.exports = router;
+export default router;

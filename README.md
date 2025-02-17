@@ -15,7 +15,7 @@ This is a **Node.js and Express** backend for a simple task management applicati
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/omar-elhusseny/your-repo-name.git
+   git clone https://github.com/omar-elhusseny/task-manager.git
    cd your-repo-name
 2. Install dependencies:
    ```sh
